@@ -1,9 +1,20 @@
 import React, { useState, useEffect } from "react";
+import { Outlet, Link, useNavigate, NavLink } from "react-router-dom";
 
 const Interface = () => {
   const [exampleQuestion, setExampleQuestion] = useState("");
   const [darkMode, setDarkMode] = useState(false);
   const [parameters, setParameters] = useState("");
+  const [response, setResponse] = useState("");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add('dark');
+    } else {
+      document.body.classList.remove('dark');
+    }
+  }, [darkMode]);
 
   const handleFindBestAgent = async () => {
     try {
@@ -29,10 +40,14 @@ const Interface = () => {
       // Handle the successful response here
       if (result.response) {
         console.log("Selected agent:", result.response);
+        setResponse(result.response);
+        
+        navigate("/output");
         // Update your UI with the result
       }
     } catch (error) {
       console.error("Error:", error.message);
+      
       // Handle error in your UI
     }
   };
@@ -40,6 +55,7 @@ const Interface = () => {
   // Update the handleSubmit function
   const handleSubmit = (e) => {
     e.preventDefault();
+    navigate("/output");
     console.log("Example Question:", exampleQuestion);
     console.log("Parameters:", parameters);
     handleFindBestAgent();
@@ -138,12 +154,18 @@ const Interface = () => {
               </div>
 
               {/* Submit Button */}
-              <button
+              <NavLink
+              to="/output"
+              onClick={() =>(
+                <>
+                  <Link to="/output" />
+                </> 
+                )}
                 type="submit"
                 className="w-full bg-gradient-to-r from-primary-500 to-secondary-500 text-white py-4 px-6 rounded-xl hover:from-primary-600 hover:to-secondary-600 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
                 Find Best AI Agent
-              </button>
+              </NavLink>
             </form>
           </div>
         </div>
