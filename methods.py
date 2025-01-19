@@ -106,7 +106,6 @@ def run_agent(agent, prompt):
 
 
 def print_responses(prompt: str):
-    prompt = "What is the company information for Apple Inc. (AAPL)?"
     agents = [yahoo, finhub, wiki]
     
     # Run each agent and collect their responses
