@@ -5,6 +5,7 @@ from phi.tools.yfinance import YFinanceTools
 from phi.tools.wikipedia import WikipediaTools
 from dotenv import load_dotenv
 import json
+import time
 from finnhub_tools import FinnhubTools 
 
 load_dotenv()
@@ -12,8 +13,9 @@ load_dotenv()
 web_agent = Agent(
     name="Web Agent",
     model=Gemini(id="gemini-1.5-flash"),
-    tools=[DuckDuckGo()],
-    instructions=["Always include sources"],
+    tools=[DuckDuckGo, YFinanceTools(stock_price=True, analyst_recommendations=True, company_info=True,
+                         historical_prices=True, technical_indicators=True)],
+    instructions=["Always include sources", "You are a finance agent who extracts information from the web", "Max words should be 50"],
     show_tool_calls=False,
     markdown=False
 )
@@ -28,7 +30,8 @@ finance_agent1 = Agent(
     model=Gemini(id="gemini-1.5-flash"),
     tools=[YFinanceTools(stock_price=True, analyst_recommendations=True, company_info=True,
                          historical_prices=True, technical_indicators=True)],
-    instructions=["Answer in paragraph format only"],
+    instructions=["Format the response in a clear, organized manner highlighting key metrics and insights.",
+                  "You are a research specialist focused on providing comprehensive information about companies and financial topics", "Max words should be 50"],
     show_tool_calls=False,
     markdown=False,
 )
@@ -40,11 +43,12 @@ finance_agent2 = Agent(
     model=Gemini(id="gemini-1.5-flash"),
     tools=[finnhub_tools],
     instructions=[
-        "You are a financial expert providing comprehensive company information and analysis.",
+        "You are a research specialist focused on providing comprehensive information about companies and financial topics.",
         "When asked about a company, extract the company's stock symbol and use get_company_profile to fetch data.",
         "Format the response in a clear, organized manner highlighting key metrics and insights.",
-        "For company queries, always include: company profile, key financials, recent news, and peer comparison.",
-        "If the company name is provided without a symbol, try to extract or ask for the symbol."
+        "Max words should be 50"
+        # "For company queries, always include: company profile, key financials, recent news, and peer comparison.",
+        # "If the company name is provided without a symbol, try to extract or ask for the symbol."
     ],
     show_tool_calls=False,
     markdown=False
@@ -61,45 +65,60 @@ finance_agent3 = Agent(
     ],
     instructions=[
         "You are a research specialist focused on providing comprehensive information about companies and financial topics.",
+        "Format the response in a clear, organized manner highlighting key metrics and insights.",
         "Use the Wikipedia search tool to get information about companies and financial concepts.",
-        "Always attempt to use the search tools before stating you cannot answer.",
-        "Combine information from multiple sources when possible.",
-        "Include sources for the information provided."
+        "Max words should be 50"
+        # "Always attempt to use the search tools before stating you cannot answer.",
+        # "Combine information from multiple sources when possible.",
+        # "Include sources for the information provided."
     ],
     show_tool_calls=False,
     markdown=False
 )
 
-
-# finance_agent4 = Agent(
-#     name="Finance Agent",
-#     role="Get financial data",
-#     model=Gemini(id="gemini-1.5-flash"),
-#     tools=[YFinanceTools(stock_price=True, analyst_recommendations=True, company_info=True,
-#                          historical_prices=True, technical_indicators=True)],
-#     show_tool_calls=False,
-#     markdown=False
-# )
-
-def print_resp():
-    # print response of all the agents
-
-    resp = finance_agent2.run("What is the company information for Apple Inc. (AAPL)?", stream=False)
-    resp1 = resp.content
-    resp1 = str(resp1).split("\n")
-    tmp_str = ""
-    for sent in resp1:
-        for c in sent:
-            if c.isalpha() or c == ' ':
-                tmp_str += c
-    print(tmp_str)
+def run_agent(agent, prompt):
+    import time  # For measuring response time
+    
+    start_time = time.time()  # Record start time
+    response = agent.run(prompt, stream=False)  # Get the response
+    
+    response_time = time.time() - start_time  # Calculate response time
+    
+    # Extract token usage and response content properly
+    try:
+        token_usage = response.usage.total_tokens if hasattr(response, "usage") and hasattr(response.usage, "total_tokens") else None
+    except AttributeError:
+        token_usage = None  # Handle cases where token usage is not available
+    
+    response_content = response.get_content_as_string() if hasattr(response, "get_content_as_string") else str(response)
+    
+    return response_content, token_usage, response_time
 
 
-print_resp()
+def print_responses():
+    prompt = "What is the company information for Apple Inc. (AAPL)?"
+    agents = [finance_agent1, finance_agent2, finance_agent3]
+    
+    # Run each agent and collect their responses
+    responses_with_details = []
+    
+    # Run each agent and collect their responses, token counts, and response times
+    for agent in agents:
+        response_content, token_count, response_time = run_agent(agent, prompt)
+        cleaned_response = response_content.replace('*', '')  # Remove asterisks
+        responses_with_details.append((cleaned_response, token_count, response_time))
+    
+    return responses_with_details
 
-    # return json.dumps({
+final_response = print_responses()
+
+# Print the details for each agent's response
+for idx, (response, tokens, time_taken) in enumerate(final_response):
+    print(f"Agent {idx + 1} Response: {response}")
+    print(f"Agent {idx + 1} Tokens Used: {tokens if tokens is not None else 'Not Provided'}")
+    print(f"Agent {idx + 1} Response Time: {time_taken:.2f} seconds\n")
+
     #     "finance_agent": finance_agent1.agent_data,
     #     # "finance_agent": finance_agent1.print_response("What is the company information for Apple Inc. (AAPL)?", stream=True),
     #     # "finance_agent": finance_agent2.print_response("What is the company information for Apple Inc. (AAPL)?", stream=True),
     #     # "finance_agent": finance_agent3.print_response("What is the company information for Apple Inc. (AAPL)?", stream=True),
-    # })
