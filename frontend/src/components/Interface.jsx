@@ -5,58 +5,44 @@ const Interface = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [parameters, setParameters] = useState("");
 
-  const handleFindBestAgent = () => {
-    const myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/json");
-  
-    const data = {
-      prompt: exampleQuestion,  // Use the actual form value
-      param: parameters        // Use the actual form value
-    };
-  
-    const requestOptions = {
-      method: "POST",
-      headers: myHeaders,
-      body: JSON.stringify(data),
-      credentials: 'omit'  // Don't send cookies
-    };
-  
-    fetch("http://localhost:5050/submit", requestOptions)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(result => {
-        console.log("Success:", result);
-        // Handle successful response here
-      })
-      .catch(error => {
-        console.error("Error:", error);
-        // Handle error here
+  const handleFindBestAgent = async () => {
+    try {
+      const response = await fetch("http://localhost:5050/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({
+          prompt: exampleQuestion,
+          param: parameters
+        })
       });
-  };
-
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+  
+      const result = await response.json();
+      console.log("Success:", result);
+      // Handle the successful response here
+      if (result.response) {
+        console.log("Selected agent:", result.response);
+        // Update your UI with the result
+      }
+    } catch (error) {
+      console.error("Error:", error.message);
+      // Handle error in your UI
     }
-  }, [darkMode]);
-
+  };
+  
+  // Update the handleSubmit function
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Convert parameters string to array by splitting on commas and trimming whitespace
-    const parameterArray = parameters
-      .split(",")
-      .map((param) => param.trim())
-      .filter((param) => param !== "");
-    handleFindBestAgent()
     console.log("Example Question:", exampleQuestion);
-    console.log("Parameters:", parameterArray);
+    console.log("Parameters:", parameters);
+    handleFindBestAgent();
   };
 
   return (
