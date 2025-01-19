@@ -1,11 +1,13 @@
 import os
 from openai import OpenAI
 from methods import print_responses
+import tiktoken
 
 client = OpenAI(
     base_url="https://integrate.api.nvidia.com/v1",
     api_key="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"
 )
+encoding = tiktoken.encoding_for_model("gpt-4")
 
 # Simulated responses
 responses = print_responses()

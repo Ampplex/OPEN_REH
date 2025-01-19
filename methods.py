@@ -5,10 +5,24 @@ from phi.tools.yfinance import YFinanceTools
 from phi.tools.wikipedia import WikipediaTools
 from dotenv import load_dotenv
 import json
-import time
 from finnhub_tools import FinnhubTools 
+import tiktoken
 
 load_dotenv()
+
+def count_tokens(text: str) -> int:
+    """
+    Count tokens using tiktoken with cl100k_base encoding (closest to Gemini's tokenization)
+    """
+    try:
+        # Use cl100k_base encoding (similar to what Gemini uses)
+        encoding = tiktoken.get_encoding("cl100k_base")
+        tokens = encoding.encode(text)
+        return len(tokens)
+    except Exception as e:
+        print(f"Error counting tokens: {e}")
+        # Fallback to approximate count
+        return len(text.split())
 
 web_agent = Agent(
     name="Web Agent",
@@ -83,16 +97,11 @@ def run_agent(agent, prompt):
     response = agent.run(prompt, stream=False)  # Get the response
     
     response_time = time.time() - start_time  # Calculate response time
-    
-    # Extract token usage and response content properly
-    try:
-        token_usage = response.usage.total_tokens if hasattr(response, "usage") and hasattr(response.usage, "total_tokens") else None
-    except AttributeError:
-        token_usage = None  # Handle cases where token usage is not available
-    
+    token_usage_count = count_tokens(response.get_content_as_string())
+
     response_content = response.get_content_as_string() if hasattr(response, "get_content_as_string") else str(response)
     
-    return response_content, token_usage, response_time
+    return response_content, token_usage_count, response_time
 
 
 def print_responses():
