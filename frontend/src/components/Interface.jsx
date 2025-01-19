@@ -5,6 +5,39 @@ const Interface = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [parameters, setParameters] = useState("");
 
+  const handleFindBestAgent = () => {
+    const myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+  
+    const data = {
+      prompt: exampleQuestion,  // Use the actual form value
+      param: parameters        // Use the actual form value
+    };
+  
+    const requestOptions = {
+      method: "POST",
+      headers: myHeaders,
+      body: JSON.stringify(data),
+      credentials: 'omit'  // Don't send cookies
+    };
+  
+    fetch("http://localhost:5050/submit", requestOptions)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(result => {
+        console.log("Success:", result);
+        // Handle successful response here
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        // Handle error here
+      });
+  };
+
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add("dark");
@@ -21,7 +54,7 @@ const Interface = () => {
       .split(",")
       .map((param) => param.trim())
       .filter((param) => param !== "");
-
+    handleFindBestAgent()
     console.log("Example Question:", exampleQuestion);
     console.log("Parameters:", parameterArray);
   };

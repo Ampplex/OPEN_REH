@@ -9,6 +9,7 @@ from finnhub_tools import FinnhubTools
 import tiktoken
 
 load_dotenv()
+prompt = ""
 
 def count_tokens(text: str) -> int:
     """
@@ -38,7 +39,7 @@ web_agent = Agent(
 wikipedia_tools = WikipediaTools()  # Without knowledge_base, it will register search_wikipedia method
 finnhub_tools = FinnhubTools()
 
-finance_agent1 = Agent(
+yahoo = Agent(
     name="Finance Agent",
     role="Get financial data",
     model=Gemini(id="gemini-1.5-flash"),
@@ -51,7 +52,7 @@ finance_agent1 = Agent(
 )
 
 # Finance Agent 2 - Finnhub Tools
-finance_agent2 = Agent(
+finhub = Agent(
     name="Finance Research Agent",
     role="Financial Data and Analysis Expert",
     model=Gemini(id="gemini-1.5-flash"),
@@ -70,7 +71,7 @@ finance_agent2 = Agent(
 
 
 # Improved finance_agent3 configuration
-finance_agent3 = Agent(
+wiki = Agent(
     name="Research Finance Agent",
     role="Financial and Company Research Specialist",
     model=Gemini(id="gemini-1.5-flash"),
@@ -104,9 +105,9 @@ def run_agent(agent, prompt):
     return response_content, token_usage_count, response_time
 
 
-def print_responses():
+def print_responses(prompt: str):
     prompt = "What is the company information for Apple Inc. (AAPL)?"
-    agents = [finance_agent1, finance_agent2, finance_agent3]
+    agents = [yahoo, finhub, wiki]
     
     # Run each agent and collect their responses
     responses_with_details = []
@@ -115,11 +116,11 @@ def print_responses():
     for agent in agents:
         response_content, token_count, response_time = run_agent(agent, prompt)
         cleaned_response = response_content.replace('*', '')  # Remove asterisks
-        responses_with_details.append((cleaned_response, token_count, response_time))
+        responses_with_details.append([cleaned_response, token_count, response_time])
     
     return responses_with_details
 
-final_response = print_responses()
+final_response = print_responses(prompt)
 
 # Print the details for each agent's response
 for idx, (response, tokens, time_taken) in enumerate(final_response):

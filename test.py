@@ -1,0 +1,3 @@
+rsp = [['Apple Inc. (AAPL) Overview:\n\n   Sector: Technology\n   Market Cap: 3.46T USD\n   Current Price: 229.98 USD\n   P/E Ratio: 37.89\n   Analyst Recommendation: Buy\n', 56, 5.574774980545044], ['Apple Inc. (AAPL), US-based tech company, market cap $3.46T.  Key metrics available.\n', 25, 13.189736127853394], ["Apple Inc. (AAPL) designs, develops, and sells consumer electronics, software, and online services.  Key products include iPhones, iPads, Macs, and wearables.  It's a multinational technology giant with a large market capitalization.\n", 52, 3.0034141540527344]]
+
+print(rsp[0][0])
