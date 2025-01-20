@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Outlet, Link, useNavigate, NavLink } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 const Interface = () => {
   const [exampleQuestion, setExampleQuestion] = useState("");
   const [darkMode, setDarkMode] = useState(false);
   const [parameters, setParameters] = useState("");
   const [response, setResponse] = useState("");
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (darkMode) {
@@ -17,6 +17,7 @@ const Interface = () => {
   }, [darkMode]);
 
   const handleFindBestAgent = async () => {
+    setLoading(true); // Start loading state
     try {
       const response = await fetch("http://localhost:5050/submit", {
         method: "POST",
@@ -29,33 +30,29 @@ const Interface = () => {
           param: parameters
         })
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
-  
+
       const result = await response.json();
       console.log("Success:", result);
-      // Handle the successful response here
+
       if (result.response) {
         console.log("Selected agent:", result.response);
         setResponse(result.response);
-        
-        navigate("/output");
-        // Update your UI with the result
       }
     } catch (error) {
       console.error("Error:", error.message);
-      
-      // Handle error in your UI
+      setResponse("An error occurred. Please try again.");
+    } finally {
+      setLoading(false); // Stop loading state
     }
   };
-  
-  // Update the handleSubmit function
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    navigate("/output");
     console.log("Example Question:", exampleQuestion);
     console.log("Parameters:", parameters);
     handleFindBestAgent();
@@ -154,22 +151,34 @@ const Interface = () => {
               </div>
 
               {/* Submit Button */}
-              <NavLink
-              to="/output"
-              onClick={() =>(
-                <>
-                  <Link to="/output" />
-                </> 
-                )}
+              <button
                 type="submit"
                 className="w-full bg-gradient-to-r from-primary-500 to-secondary-500 text-white py-4 px-6 rounded-xl hover:from-primary-600 hover:to-secondary-600 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
                 Find Best AI Agent
-              </NavLink>
+              </button>
             </form>
+
+            {/* Display the Response */}
+            {response && !loading && (
+              <div className="mt-6 p-4 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-800 dark:text-white">
+                <h3 className="font-semibold text-lg">Response:</h3>
+                <p>{response}</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Loading Modal */}
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl flex items-center space-x-4">
+            <div className="animate-spin w-12 h-12 border-4 border-t-4 border-gray-600 dark:border-gray-300 rounded-full"></div>
+            <span className="text-lg text-gray-800 dark:text-white">Loading...</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

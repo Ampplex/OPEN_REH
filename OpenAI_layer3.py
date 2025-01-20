@@ -9,6 +9,7 @@ client = OpenAI(
 def final_analysis(main_factors, user_param: str):
     # Instruction for selecting the best agent based on user_param
     instruction = f"""
+    Firstly give the response to the prompt with respect to parameters
     There are three main aspects or factors for every AI agent: accuracy of response, token size of the output, and time taken to reply.
     We have selected different agents which perform the best for each aspect:
     - At index 0: Most accurate agent.
@@ -24,7 +25,8 @@ def final_analysis(main_factors, user_param: str):
     If you select index 1, return "finhub".
     If you select index 2, return "wiki".
     
-    You must return only a single word ("yahoo", "finhub", or "wiki").
+    You must return a single word ("yahoo", "finhub", or "wiki").
+    With a response to the prompt given by the user
     """
 
     print("MAIN_FACTORS: ", main_factors)

@@ -29,7 +29,7 @@ def filter_resp(prompt, user_param):
         messages=[{"role": "system", "content": instruction}],
         temperature=0.0,
         top_p=1,
-        max_tokens=50,
+        max_tokens=20,
     )
 
     # Parse the best index response
@@ -52,4 +52,3 @@ def filter_resp(prompt, user_param):
     # print(f"Final selected agent: {output}")
     Final_analysis = final_analysis(main_factors, user_param)
     print(f"Final selected agent: {Final_analysis}")
-    return Final_analysis
